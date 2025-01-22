@@ -1,0 +1,35 @@
+# OS
+.DS_Store
+.Trash
+.CFUserTextEncoding
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Dependencies
+node_modules/
+.npm/
+.yarn/
+
+# Build
+.next/
+out/
+build/
+dist/
+
+# Environment
+.env*
+!.env.example
+
+# Misc
+*.log
+.cache/
+coverage/
+
+# Personal
+.bash_history
+.bash_sessions/
+.ssh/
+.config/
