@@ -1,66 +1,119 @@
 'use client';
 
-import { FC, ReactNode, useMemo } from 'react';
+import { FC, ReactNode, useMemo, useCallback, useEffect } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
-import { 
-    PhantomWalletAdapter,
-    SolflareWalletAdapter,
-    type Adapter 
+import {
+  PhantomWalletAdapter,
+  SolflareWalletAdapter,
+  type Adapter,
+  type WalletAdapterNetwork,
+  type WalletError,
+  WalletNotConnectedError,
+  WalletNotReadyError,
+  WalletDisconnectedError,
 } from '@solana/wallet-adapter-wallets';
-import { clusterApiUrl, type Cluster } from '@solana/web3.js';
+import {
+  clusterApiUrl,
+  type Cluster,
+  type Commitment,
+  type Connection,
+  type ConnectionConfig,
+} from '@solana/web3.js';
 
-// 导入钱包适配器样式
+// Import wallet adapter styles
 import '@solana/wallet-adapter-react-ui/styles.css';
 
 /**
- * 钱包上下文提供者组件的属性接口
- * @interface WalletContextProviderProps
+ * Props interface for the WalletContextProvider component
  */
 interface WalletContextProviderProps {
-    /** 子组件 */
-    children: ReactNode;
-    /** RPC节点地址，默认为 devnet */
-    endpoint?: string;
-    /** Solana网络类型，默认为 devnet */
-    network?: Cluster;
+  /** Child components */
+  readonly children: ReactNode;
+  /** RPC endpoint URL, defaults to devnet */
+  readonly endpoint?: string;
+  /** Solana network cluster, defaults to devnet */
+  readonly network?: Cluster;
+  /** Transaction commitment level, defaults to confirmed */
+  readonly commitment?: Commitment;
+  /** Connection configuration options */
+  readonly connectionConfig?: ConnectionConfig;
+  /** Whether to auto-connect to the wallet */
+  readonly autoConnect?: boolean;
+  /** Error callback handler */
+  readonly onError?: (error: WalletError) => void;
 }
 
 /**
- * 钱包上下文提供者组件
- * 提供Solana钱包连接和管理功能，支持多个钱包适配器
+ * Wallet Context Provider Component
+ * Provides Solana wallet connection and management functionality
+ * Supports multiple wallet adapters
  *
  * @component
  * @example
  * ```tsx
+ * // Basic usage
  * <WalletContextProvider>
+ *   <App />
+ * </WalletContextProvider>
+ * 
+ * // Custom configuration
+ * <WalletContextProvider
+ *   endpoint="https://api.mainnet-beta.solana.com"
+ *   network="mainnet-beta"
+ *   commitment="finalized"
+ *   onError={(error) => console.error(error)}
+ *   connectionConfig={{ wsEndpoint: "wss://api.mainnet-beta.solana.com" }}
+ * >
  *   <App />
  * </WalletContextProvider>
  * ```
  */
-const WalletContextProvider: FC<WalletContextProviderProps> = ({ 
-    children,
-    endpoint = clusterApiUrl('devnet'),
-    network = 'devnet'
-}): JSX.Element => {
-    // 初始化钱包适配器列表
-    const wallets = useMemo<Adapter[]>(
-        () => [
-            new PhantomWalletAdapter(),
-            new SolflareWalletAdapter({ network }),
-        ],
-        [network]
-    );
+const WalletContextProvider: FC<WalletContextProviderProps> = ({
+  children,
+  endpoint = clusterApiUrl('devnet'),
+  network = 'devnet',
+  commitment = 'confirmed',
+  connectionConfig,
+  autoConnect = true,
+  onError,
+}) => {
+  const handleError = useCallback(
+    (error: WalletError) => {
+      if (error instanceof WalletNotConnectedError) {
+        console.warn('Wallet not connected');
+      } else if (error instanceof WalletNotReadyError) {
+        console.warn('Wallet not ready');
+      } else if (error instanceof WalletDisconnectedError) {
+        console.warn('Wallet disconnected');
+      } else {
+        console.error('Wallet error:', error);
+      }
+      onError?.(error);
+    },
+    [onError],
+  );
 
-    return (
-        <ConnectionProvider endpoint={endpoint}>
-            <WalletProvider wallets={wallets} autoConnect>
-                <WalletModalProvider>
-                    {children}
-                </WalletModalProvider>
-            </WalletProvider>
-        </ConnectionProvider>
-    );
+  const wallets = useMemo(
+    () => [
+      new PhantomWalletAdapter({ network: network as WalletAdapterNetwork }),
+      new SolflareWalletAdapter({ network: network as WalletAdapterNetwork }),
+    ],
+    [network],
+  );
+
+  useEffect(() => {
+    const config = { commitment, ...connectionConfig };
+    console.debug('Network config updated:', { network, config });
+  }, [network, commitment, connectionConfig]);
+
+  return (
+    <ConnectionProvider endpoint={endpoint} config={{ commitment, ...connectionConfig }}>
+      <WalletProvider wallets={wallets} autoConnect={autoConnect} onError={handleError}>
+        <WalletModalProvider>{children}</WalletModalProvider>
+      </WalletProvider>
+    </ConnectionProvider>
+  );
 };
 
 export default WalletContextProvider; 
