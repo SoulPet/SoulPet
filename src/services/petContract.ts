@@ -1,4 +1,8 @@
-import { Program, AnchorProvider, Idl } from '@project-serum/anchor';
+import { 
+    Program as AnchorProgram,
+    Provider as AnchorProvider,
+    Idl as AnchorIdl 
+} from '@project-serum/anchor/dist/cjs';
 import { Connection, PublicKey, SystemProgram } from '@solana/web3.js';
 
 // 定义 PetData 接口
@@ -10,7 +14,7 @@ export interface PetData {
 }
 
 export class PetContractService {
-    private program: Program<Idl>;
+    private program: AnchorProgram<AnchorIdl>;
     private connection: Connection;
 
     constructor(connection: Connection, programId: PublicKey) {
@@ -22,7 +26,7 @@ export class PetContractService {
             AnchorProvider.defaultOptions()
         );
         // 这里需要导入实际的 IDL
-        // this.program = new Program(IDL, programId, provider);
+        // this.program = new AnchorProgram(IDL, programId, provider);
     }
 
     private async derivePetAddress(owner: PublicKey): Promise<[PublicKey, number]> {

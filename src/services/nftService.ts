@@ -1,11 +1,17 @@
-import { Metaplex } from '@metaplex-foundation/js';
+import { 
+    Metaplex as MetaplexSDK,
+    bundlrStorage,
+    walletAdapterIdentity
+} from '@metaplex-foundation/js/dist/cjs';
 import { Connection, PublicKey } from '@solana/web3.js';
 
 export class NFTService {
-    private metaplex: Metaplex;
+    private metaplex: MetaplexSDK;
 
-    constructor(connection: Connection) {
-        this.metaplex = new Metaplex(connection);
+    constructor(connection: Connection, wallet: any) {
+        this.metaplex = new MetaplexSDK(connection)
+            .use(walletAdapterIdentity(wallet))
+            .use(bundlrStorage());
     }
 
     async createNFT(
