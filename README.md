@@ -23,6 +23,12 @@ A blockchain and AI-powered platform that provides emotional solace and permanen
 - [Contributing](#contributing)
 - [License](#license)
 
+## Current Version Status
+
+Our current version is in the testing phase and may contain some bugs and instabilities. Our development team is continuously updating and debugging the platform, with plans to release more stable versions in the future.
+
+We warmly welcome members of the open-source community to participate and help us identify potential issues. Every suggestion is valuable to us, and we are committed to carefully considering and actively implementing improvements. Let's work together to advance this project and contribute to promoting harmonious relationships between humans and their pets.
+
 ## Core Modules
 
 ### 1. Token System
