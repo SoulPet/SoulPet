@@ -6,6 +6,10 @@
 
 A blockchain and AI-powered platform that provides emotional solace and permanent memorials for pet owners who have lost their beloved companions. We aim to help pets "live on" through technology while maintaining the emotional connection between pets and their owners.
 
+## Official Channels
+
+- Twitter: [SoulPet_AI](https://x.com/SoulPet_AI)
+
 ## Core Values
 
 - Providing emotional support and permanent memorials through blockchain technology and AI
