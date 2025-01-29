@@ -1,7 +1,7 @@
 declare module '@project-serum/anchor/dist/cjs' {
   export class Program<T = any> {
     constructor(idl: any, programId: any, provider: any);
-    // 添加其他必要的类型定义
+    // Add other necessary type definitions
   }
 
   export class Provider {
@@ -10,7 +10,7 @@ declare module '@project-serum/anchor/dist/cjs' {
   }
 
   export interface Idl {
-    // 添加必要的接口定义
+    // Add necessary interface definitions
   }
 }
 
@@ -25,4 +25,19 @@ declare module '@metaplex-foundation/js/dist/cjs' {
 
   export function bundlrStorage(): any;
   export function walletAdapterIdentity(wallet: any): any;
+}
+
+declare module '*.svg' {
+  const content: React.FC<React.SVGProps<SVGSVGElement>>;
+  export default content;
+}
+
+declare module '*.png' {
+  const content: string;
+  export default content;
+}
+
+declare module '*.jpg' {
+  const content: string;
+  export default content;
 }

@@ -1,25 +1,19 @@
 'use client';
 
-import { FC, ReactNode, useMemo, useCallback, useEffect } from 'react';
-import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import {
-  PhantomWalletAdapter,
-  SolflareWalletAdapter,
-  type Adapter,
-  type WalletAdapterNetwork,
-  type WalletError,
-  WalletNotConnectedError,
-  WalletNotReadyError,
-  WalletDisconnectedError,
+    WalletDisconnectedError, WalletNotConnectedError,
+    WalletNotReadyError, type WalletAdapterNetwork, type WalletError
+} from '@solana/wallet-adapter-base';
+import {
+    PhantomWalletAdapter,
+    SolflareWalletAdapter
 } from '@solana/wallet-adapter-wallets';
 import {
-  clusterApiUrl,
-  type Cluster,
-  type Commitment,
-  type Connection,
-  type ConnectionConfig,
+    clusterApiUrl,
+    type Commitment,
+    type ConnectionConfig
 } from '@solana/web3.js';
+import { ReactNode, useCallback, useEffect, useMemo } from 'react';
 
 // Import wallet adapter styles
 import '@solana/wallet-adapter-react-ui/styles.css';
@@ -27,21 +21,21 @@ import '@solana/wallet-adapter-react-ui/styles.css';
 /**
  * Props interface for the WalletContextProvider component
  */
-interface WalletContextProviderProps {
-  /** Child components */
-  readonly children: ReactNode;
-  /** RPC endpoint URL, defaults to devnet */
-  readonly endpoint?: string;
-  /** Solana network cluster, defaults to devnet */
-  readonly network?: Cluster;
-  /** Transaction commitment level, defaults to confirmed */
-  readonly commitment?: Commitment;
-  /** Connection configuration options */
-  readonly connectionConfig?: ConnectionConfig;
-  /** Whether to auto-connect to the wallet */
-  readonly autoConnect?: boolean;
-  /** Error callback handler */
-  readonly onError?: (error: WalletError) => void;
+interface Props {
+    /** Child components */
+    readonly children: ReactNode;
+    /** RPC endpoint URL, defaults to devnet */
+    readonly endpoint?: string;
+    /** Solana network cluster, defaults to devnet */
+    readonly network?: WalletAdapterNetwork;
+    /** Transaction commitment level, defaults to confirmed */
+    readonly commitment?: Commitment;
+    /** Connection configuration options */
+    readonly connectionConfig?: ConnectionConfig;
+    /** Whether to auto-connect to the wallet */
+    readonly autoConnect?: boolean;
+    /** Error callback handler */
+    readonly onError?: (error: WalletError) => void;
 }
 
 /**
@@ -69,51 +63,57 @@ interface WalletContextProviderProps {
  * </WalletContextProvider>
  * ```
  */
-const WalletContextProvider: FC<WalletContextProviderProps> = ({
-  children,
-  endpoint = clusterApiUrl('devnet'),
-  network = 'devnet',
-  commitment = 'confirmed',
-  connectionConfig,
-  autoConnect = true,
-  onError,
-}) => {
-  const handleError = useCallback(
-    (error: WalletError) => {
-      if (error instanceof WalletNotConnectedError) {
-        console.warn('Wallet not connected');
-      } else if (error instanceof WalletNotReadyError) {
-        console.warn('Wallet not ready');
-      } else if (error instanceof WalletDisconnectedError) {
-        console.warn('Wallet disconnected');
-      } else {
-        console.error('Wallet error:', error);
-      }
-      onError?.(error);
-    },
-    [onError],
-  );
+export default function WalletContextProvider({
+    children,
+    endpoint = clusterApiUrl('devnet'),
+    network = 'devnet' as WalletAdapterNetwork,
+    commitment = 'confirmed',
+    connectionConfig,
+    autoConnect = true,
+    onError,
+}: Props): JSX.Element {
+    const handleError = useCallback(
+        (error: WalletError) => {
+            if (error instanceof WalletNotConnectedError) {
+                console.warn('Wallet not connected');
+            } else if (error instanceof WalletNotReadyError) {
+                console.warn('Wallet not ready');
+            } else if (error instanceof WalletDisconnectedError) {
+                console.warn('Wallet disconnected');
+            } else {
+                console.error('Wallet error:', error);
+            }
+            onError?.(error);
+        },
+        [onError],
+    );
 
-  const wallets = useMemo(
-    () => [
-      new PhantomWalletAdapter({ network: network as WalletAdapterNetwork }),
-      new SolflareWalletAdapter({ network: network as WalletAdapterNetwork }),
-    ],
-    [network],
-  );
+    const wallets = useMemo(
+        () => [
+            new PhantomWalletAdapter({ network }),
+            new SolflareWalletAdapter({ network }),
+        ],
+        [network],
+    );
 
-  useEffect(() => {
-    const config = { commitment, ...connectionConfig };
-    console.debug('Network config updated:', { network, config });
-  }, [network, commitment, connectionConfig]);
+    useEffect(() => {
+        const config = { commitment, ...connectionConfig };
+        console.debug('Network config updated:', { network, config });
+    }, [network, commitment, connectionConfig]);
 
-  return (
-    <ConnectionProvider endpoint={endpoint} config={{ commitment, ...connectionConfig }}>
-      <WalletProvider wallets={wallets} autoConnect={autoConnect} onError={handleError}>
-        <WalletModalProvider>{children}</WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
-  );
-};
-
-export default WalletContextProvider; 
+    return (
+        <ConnectionProvider
+            endpoint= { endpoint }
+    config = {{ commitment, ...connectionConfig }
+}
+        >
+    <WalletProvider
+                wallets={ wallets }
+autoConnect = { autoConnect }
+onError = { handleError }
+    >
+    <WalletModalProvider>{ children } < /WalletModalProvider>
+    < /WalletProvider>
+    < /ConnectionProvider>
+    );
+} 

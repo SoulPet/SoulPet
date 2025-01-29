@@ -1,0 +1,644 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model - represents the application users
+model User {
+  id                    String      @id @default(uuid())
+  email                 String?     @unique
+  walletAddress        String?     @unique // Blockchain wallet address
+  username             String      @unique
+  nickname             String?
+  avatar               String?     // URL to avatar image
+  bio                  String?     // User biography
+  password             String?     // Hashed password
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+
+  // Authentication & Security
+  isEmailVerified      Boolean     @default(false)
+  isWalletVerified     Boolean     @default(false)
+  emailVerifyToken     String?     // Email verification token
+  resetPasswordToken   String?     // Password reset token
+  resetPasswordExpires DateTime?   // Password reset token expiry
+  twoFactorSecret      String?     // 2FA secret
+  twoFactorEnabled     Boolean     @default(false)
+  lastLoginAt          DateTime?   // Last login timestamp
+  lastLoginIp          String?     // Last login IP address
+  status               UserStatus  @default(ACTIVE)
+
+  // Session Management
+  sessions             Session[]
+
+  // Relations
+  pets                Pet[]
+  nfts                NFT[]
+  tokens              Token[]
+  interactions        Interaction[]
+  posts               CommunityPost[]
+  comments            Comment[]
+  solanaWallets       SolanaWallet[]
+
+  @@map("users")
+}
+
+// Session model - for managing user sessions
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  token        String   @unique
+  deviceInfo   String?  // User agent or device identifier
+  ipAddress    String?  // IP address
+  lastActivity DateTime @default(now())
+  expiresAt    DateTime
+  isValid      Boolean  @default(true)
+
+  // Relations
+  user         User     @relation(fields: [userId], references: [id])
+
+  @@map("sessions")
+}
+
+// Pet model - represents digital pet memories
+model Pet {
+  id          String    @id @default(uuid())
+  name        String
+  species     String
+  birthDate   DateTime?
+  passedDate  DateTime?
+  description String?   // Pet description and memories
+  images      String[] // Array of image URLs
+  videos      String[] // Array of video URLs
+  audioClips  String[] // Array of audio clip URLs
+  traits      Json?    // Personality traits and characteristics
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Additional fields
+  personalityTraits String[]  // Personality trait tags
+  favoriteThings   String[]  // Favorite items
+  habits           String[]  // Daily habits
+  medicalHistory   Json?     // Medical history
+  memoryTags       String[]  // Memory tags
+  model3dUrl       String?   // 3D model URL
+  arModelUrl       String?   // AR model URL
+  voiceModel      String?   // AI voice model URL
+
+  // Relations
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+  nft         NFT?
+  interactions Interaction[]
+
+  // Additional relations
+  memorialRoom    MemorialRoom?
+  aiTrainingData  AiTrainingData?
+  assets        PetAsset[]
+  aiModels      AIModel?
+  trainingJobs  ModelTrainingJob[]
+
+  @@map("pets")
+}
+
+// NFT model - represents digital pet memorials
+model NFT {
+  id          String    @id
+  tokenId     String    @unique // Blockchain token ID
+  metadata    Json      // NFT metadata
+  imageUrl    String    // NFT image URL
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  petId       String    @unique
+  pet         Pet       @relation(fields: [petId], references: [id])
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  solanaMint  SolanaNFTMint?
+
+  @@map("nfts")
+}
+
+// Token model - represents the ecosystem token
+model Token {
+  id          String    @id @default(uuid())
+  balance     Float
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Additional fields
+  transactionType TokenTransactionType
+  description    String?
+
+  // Relations
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+
+  @@map("tokens")
+}
+
+// Interaction model - represents AI interactions with digital pets
+model Interaction {
+  id          String    @id @default(uuid())
+  type        InteractionType
+  content     String    // Interaction content
+  response    String    // AI response
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  petId       String
+  pet         Pet       @relation(fields: [petId], references: [id])
+  logs          InteractionLog[]
+
+  @@map("interactions")
+}
+
+// CommunityPost model - represents community content
+model CommunityPost {
+  id          String    @id @default(uuid())
+  title       String
+  content     String
+  images      String[] // Array of image URLs
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  comments    Comment[]
+
+  @@map("community_posts")
+}
+
+// Comment model - represents comments on community posts
+model Comment {
+  id          String    @id @default(uuid())
+  content     String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  postId      String
+  post        CommunityPost @relation(fields: [postId], references: [id])
+
+  @@map("comments")
+}
+
+// Enums
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum InteractionType {
+  CHAT
+  PLAY
+  MEMORY
+  CUSTOM
+}
+
+// MemorialRoom model - Virtual memorial hall
+model MemorialRoom {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  theme       String    @default("default")
+  layout      Json      // Room layout configuration
+  decorations Json      // Decoration configuration
+  visitors    Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  petId       String    @unique
+  pet         Pet       @relation(fields: [petId], references: [id])
+  guestbook   GuestbookEntry[]
+
+  @@map("memorial_rooms")
+}
+
+// GuestbookEntry model - Memorial hall messages
+model GuestbookEntry {
+  id          String    @id @default(uuid())
+  content     String
+  createdAt   DateTime  @default(now())
+  
+  // Relations
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  roomId      String
+  room        MemorialRoom @relation(fields: [roomId], references: [id])
+
+  @@map("guestbook_entries")
+}
+
+// AiTrainingData model - AI training data
+model AiTrainingData {
+  id          String    @id @default(uuid())
+  behaviorLogs Json     // Behavior records
+  dialogues    Json     // Dialogue records
+  preferences  Json     // Preference settings
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  petId       String    @unique
+  pet         Pet       @relation(fields: [petId], references: [id])
+
+  @@map("ai_training_data")
+}
+
+// Token transaction type enum
+enum TokenTransactionType {
+  MINT
+  TRANSFER
+  MEMORIAL_ROOM_UPGRADE
+  AI_TRAINING
+  PHYSICAL_PRODUCT
+  DONATION
+}
+
+// AIModel model - AI model management
+model AIModel {
+  id            String    @id @default(uuid())
+  version       String    // Model version
+  baseModel     String    // Base model type (GPT-4, Stable Diffusion, etc.)
+  modelType     AIModelType
+  modelUrl      String    // Model file URL
+  configJson    Json      // Model configuration
+  performance   Json?     // Performance metrics
+  status        AIModelStatus @default(TRAINING)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  petId         String    @unique
+  pet           Pet       @relation(fields: [petId], references: [id])
+
+  @@map("ai_models")
+}
+
+// ModelTrainingJob model - Model training tasks
+model ModelTrainingJob {
+  id            String    @id @default(uuid())
+  status        TrainingJobStatus @default(PENDING)
+  progress      Float     @default(0)
+  configJson    Json      // Training configuration
+  resultMetrics Json?     // Training result metrics
+  errorLog      String?   // Error log
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  petId         String
+  pet           Pet       @relation(fields: [petId], references: [id])
+
+  @@map("model_training_jobs")
+}
+
+// PetAsset model - Pet-related resource files
+model PetAsset {
+  id            String    @id @default(uuid())
+  assetType     AssetType
+  fileUrl       String    // IPFS or CDN URL
+  mimeType      String    // File type
+  size          Int       // File size (bytes)
+  metadata      Json?     // Resource metadata
+  status        AssetStatus @default(PROCESSING)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  petId         String
+  pet           Pet       @relation(fields: [petId], references: [id])
+
+  @@map("pet_assets")
+}
+
+// InteractionLog model - Detailed interaction logs
+model InteractionLog {
+  id            String    @id @default(uuid())
+  sessionId     String    // Session ID
+  inputType     InputType
+  inputContent  String    // User input
+  responseType  ResponseType
+  responseContent String  // AI response
+  emotionData   Json?    // Emotion analysis data
+  metrics       Json?    // Interaction metrics
+  createdAt     DateTime  @default(now())
+
+  // Relations
+  interactionId String
+  interaction   Interaction @relation(fields: [interactionId], references: [id])
+
+  @@map("interaction_logs")
+}
+
+// Additional enum types
+enum AIModelType {
+  PERSONALITY
+  VOICE
+  IMAGE
+  ANIMATION
+}
+
+enum AIModelStatus {
+  TRAINING
+  ACTIVE
+  DEPRECATED
+  FAILED
+}
+
+enum TrainingJobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum AssetType {
+  IMAGE
+  VIDEO
+  AUDIO
+  MODEL_3D
+  MODEL_AR
+  VOICE_MODEL
+}
+
+enum AssetStatus {
+  PROCESSING
+  ACTIVE
+  FAILED
+  DELETED
+}
+
+enum InputType {
+  TEXT
+  VOICE
+  GESTURE
+  TOUCH
+}
+
+enum ResponseType {
+  TEXT
+  VOICE
+  ANIMATION
+  COMBINED
+}
+
+// SolanaWallet model - Solana wallet management
+model SolanaWallet {
+  id            String    @id @default(uuid())
+  publicKey     String    @unique    // Solana wallet public key
+  isActive      Boolean   @default(true)
+  label         String?   // Wallet label
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  transactions  SolanaTransaction[]
+  nftMints      SolanaNFTMint[]
+
+  @@map("solana_wallets")
+}
+
+// SolanaTransaction model - Solana transaction records
+model SolanaTransaction {
+  id            String    @id @default(uuid())
+  signature     String    @unique    // Transaction signature
+  type          SolanaTransactionType
+  status        TransactionStatus @default(PENDING)
+  amount        Float?    // SOL amount
+  fee           Float     // Transaction fee
+  slot          BigInt    // Solana slot number
+  blockTime     DateTime? // Block time
+  errorLog      String?   // Error log
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  walletId      String
+  wallet        SolanaWallet @relation(fields: [walletId], references: [id])
+  nftMint       SolanaNFTMint?
+
+  @@map("solana_transactions")
+}
+
+// SolanaNFTMint model - NFT minting records
+model SolanaNFTMint {
+  id            String    @id @default(uuid())
+  mintAddress   String    @unique    // NFT mint address
+  metadataAddress String  // Metadata PDA address
+  masterEdition String?   // Master edition PDA
+  uri           String    // Metadata URI
+  name          String    // NFT name
+  symbol        String    // NFT symbol
+  status        NFTMintStatus @default(PREPARING)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  walletId      String
+  wallet        SolanaWallet @relation(fields: [walletId], references: [id])
+  transactionId String?   @unique
+  transaction   SolanaTransaction? @relation(fields: [transactionId], references: [id])
+  nftId         String    @unique
+  nft           NFT       @relation(fields: [nftId], references: [id])
+
+  @@map("solana_nft_mints")
+}
+
+// MetaplexMetadata model - Metaplex metadata
+model MetaplexMetadata {
+  id            String    @id @default(uuid())
+  name          String
+  symbol        String
+  description   String
+  image         String    // Image URL
+  animationUrl  String?   // Animation URL
+  externalUrl   String?   // External link
+  attributes    Json      // NFT attributes
+  properties    Json      // Other properties
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("metaplex_metadata")
+}
+
+// Additional enum types
+enum SolanaTransactionType {
+  NFT_MINT
+  TOKEN_TRANSFER
+  SOL_TRANSFER
+  PROGRAM_INTERACTION
+}
+
+enum TransactionStatus {
+  PENDING
+  CONFIRMED
+  FINALIZED
+  FAILED
+}
+
+enum NFTMintStatus {
+  PREPARING
+  UPLOADING_METADATA
+  CREATING_MINT
+  MINTING
+  COMPLETED
+  FAILED
+}
+
+// WebSocketSession model - Real-time communication session management
+model WebSocketSession {
+  id            String    @id @default(uuid())
+  sessionKey    String    @unique
+  status        ConnectionStatus @default(CONNECTED)
+  clientInfo    Json?     // Client information
+  lastPing      DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  messages      WebSocketMessage[]
+
+  @@map("websocket_sessions")
+}
+
+// WebSocketMessage model - WebSocket message records
+model WebSocketMessage {
+  id            String    @id @default(uuid())
+  type          MessageType
+  content       Json      // Message content
+  status        MessageStatus @default(SENT)
+  createdAt     DateTime  @default(now())
+
+  // Relations
+  sessionId     String
+  session       WebSocketSession @relation(fields: [sessionId], references: [id])
+
+  @@map("websocket_messages")
+}
+
+// ProcessingJob model - Asynchronous processing tasks
+model ProcessingJob {
+  id            String    @id @default(uuid())
+  jobType       JobType
+  status        JobStatus @default(QUEUED)
+  priority      Int       @default(0)
+  payload       Json      // Task data
+  result        Json?     // Processing result
+  errorMessage  String?   // Error message
+  progress      Float     @default(0)
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("processing_jobs")
+}
+
+// IPFSAsset model - IPFS resource management
+model IPFSAsset {
+  id            String    @id @default(uuid())
+  cid           String    @unique    // IPFS Content ID
+  mimeType      String    // File type
+  size          Int       // File size
+  pinned        Boolean   @default(false)
+  gateway       String?   // Preferred gateway
+  metadata      Json?     // File metadata
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("ipfs_assets")
+}
+
+// RenderJob model - 3D rendering tasks
+model RenderJob {
+  id            String    @id @default(uuid())
+  modelUrl      String    // 3D model URL
+  renderType    RenderType
+  settings      Json      // Render settings
+  status        RenderStatus @default(PENDING)
+  output        String?   // Render output URL
+  errorLog      String?   // Error log
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("render_jobs")
+}
+
+// Additional enum types
+enum ConnectionStatus {
+  CONNECTED
+  DISCONNECTED
+  IDLE
+}
+
+enum MessageType {
+  CHAT
+  SYSTEM
+  ANIMATION
+  RENDER
+  CUSTOM
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+enum JobType {
+  IMAGE_PROCESSING
+  MODEL_GENERATION
+  AI_TRAINING
+  NFT_MINTING
+  RENDER_3D
+}
+
+enum JobStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum RenderType {
+  STATIC
+  ANIMATION
+  INTERACTIVE
+  AR
+}
+
+enum RenderStatus {
+  PENDING
+  RENDERING
+  COMPLETED
+  FAILED
+}
