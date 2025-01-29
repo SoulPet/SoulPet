@@ -105,28 +105,28 @@ src/
 
 ## Development Roadmap
 
-### Phase 1: Foundation (Q1 2024)
+### Phase 1: Foundation (Q1 2025)
 
 - Token launch and ecosystem foundation
 - Project vision and roadmap introduction
 - Community building initiation
 - Basic platform infrastructure
 
-### Phase 2: NFT Integration (Q2 2024)
+### Phase 2: NFT Integration (Q2 2025)
 
 - Pet memorial NFT functionality
 - Community NFT design voting
 - Limited edition NFT privileges
 - NFT marketplace launch
 
-### Phase 3: AI Implementation (Q3 2024)
+### Phase 3: AI Implementation (Q3 2025)
 
 - AI pet interaction features
 - Priority access for token holders
 - Personalization services
 - Advanced interaction models
 
-### Phase 4: Extended Features (Q4 2024)
+### Phase 4: Extended Features (Q4 2025)
 
 - 3D printing services
 - AR/VR functionality
