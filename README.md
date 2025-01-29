@@ -300,18 +300,18 @@ docker run -p 3000:3000 soulpet
 
 ## Changelog
 
-### [0.3.0] - 2024-03-01
+### [0.3.0] - 2025-01-29
 - Enhanced AI interaction capabilities
 - Improved 3D model rendering
 - Added new NFT features
 
-### [0.2.0] - 2024-02-15
+### [0.2.0] - 2025-01-15
 - Implemented basic AI personality reconstruction
 - Added NFT minting functionality
 - Integrated blockchain wallet connection
 - Enhanced user profile management
 
-### [0.1.0] - 2024-01-01
+### [0.1.0] - 2024-12-01
 - Initial release
 - Basic platform structure
 - User authentication system
