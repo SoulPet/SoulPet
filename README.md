@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="public/logo.svg" alt="SoulPet Logo" width="200" height="200">
+</div>
+
 # SoulPet - Digital Pet Memorial Platform
 
 A blockchain and AI-powered platform that provides emotional solace and permanent memorials for pet owners who have lost their beloved companions. We aim to help pets "live on" through technology while maintaining the emotional connection between pets and their owners.
