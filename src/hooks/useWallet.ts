@@ -1,46 +1,94 @@
-import { FC, ReactNode, useMemo } from 'react';
-import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
-import { 
-    PhantomWalletAdapter,
-    SolflareWalletAdapter,
-    type Adapter 
-} from '@solana/wallet-adapter-wallets';
-import { clusterApiUrl, type Cluster } from '@solana/web3.js';
+'use client';
 
-// 导入钱包适配器样式
+import {
+    WalletDisconnectedError, WalletNotConnectedError,
+    WalletNotReadyError, type WalletAdapterNetwork, type WalletError
+} from '@solana/wallet-adapter-base';
+import {
+    PhantomWalletAdapter,
+    SolflareWalletAdapter
+} from '@solana/wallet-adapter-wallets';
+import {
+    clusterApiUrl,
+    type Commitment,
+    type ConnectionConfig
+} from '@solana/web3.js';
+import { ReactNode, useCallback, useEffect, useMemo } from 'react';
+
+// Import wallet adapter styles
 import '@solana/wallet-adapter-react-ui/styles.css';
 
 /**
- * 钱包上下文提供者组件的属性接口
- * @interface WalletContextProviderProps
+ * Props interface for the WalletContextProvider component
  */
-interface WalletContextProviderProps {
-    /** 子组件 */
-    children: ReactNode;
-    /** RPC节点地址，默认为 devnet */
-    endpoint?: string;
-    /** Solana网络类型，默认为 devnet */
-    network?: Cluster;
+interface Props {
+    /** Child components */
+    readonly children: ReactNode;
+    /** RPC endpoint URL, defaults to devnet */
+    readonly endpoint?: string;
+    /** Solana network cluster, defaults to devnet */
+    readonly network?: WalletAdapterNetwork;
+    /** Transaction commitment level, defaults to confirmed */
+    readonly commitment?: Commitment;
+    /** Connection configuration options */
+    readonly connectionConfig?: ConnectionConfig;
+    /** Whether to auto-connect to the wallet */
+    readonly autoConnect?: boolean;
+    /** Error callback handler */
+    readonly onError?: (error: WalletError) => void;
 }
 
 /**
- * 钱包上下文提供者组件
- * 提供Solana钱包连接和管理功能，支持多个钱包适配器
+ * Wallet Context Provider Component
+ * Provides Solana wallet connection and management functionality
+ * Supports multiple wallet adapters
  *
  * @component
  * @example
  * ```tsx
+ * // Basic usage
  * <WalletContextProvider>
+ *   <App />
+ * </WalletContextProvider>
+ * 
+ * // Custom configuration
+ * <WalletContextProvider
+ *   endpoint="https://api.mainnet-beta.solana.com"
+ *   network="mainnet-beta"
+ *   commitment="finalized"
+ *   onError={(error) => console.error(error)}
+ *   connectionConfig={{ wsEndpoint: "wss://api.mainnet-beta.solana.com" }}
+ * >
  *   <App />
  * </WalletContextProvider>
  * ```
  */
-export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children, endpoint, network = 'devnet' }) => {
-    // 如果没有提供endpoint，则使用默认的devnet节点
-    const rpcEndpoint = useMemo(() => endpoint || clusterApiUrl(network), [endpoint, network]);
+export default function WalletContextProvider({
+    children,
+    endpoint = clusterApiUrl('devnet'),
+    network = 'devnet' as WalletAdapterNetwork,
+    commitment = 'confirmed',
+    connectionConfig,
+    autoConnect = true,
+    onError,
+}: Props): JSX.Element {
+    const handleError = useCallback(
+        (error: WalletError) => {
+            if (error instanceof WalletNotConnectedError) {
+                console.warn('Wallet not connected');
+            } else if (error instanceof WalletNotReadyError) {
+                console.warn('Wallet not ready');
+            } else if (error instanceof WalletDisconnectedError) {
+                console.warn('Wallet disconnected');
+            } else {
+                console.error('Wallet error:', error);
+            }
+            onError?.(error);
+        },
+        [onError]
+    );
 
-    // 初始化钱包适配器列表
+    // Initialize wallet adapters
     const wallets = useMemo(
         () => [
             new PhantomWalletAdapter(),
@@ -50,14 +98,20 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
     );
 
     return (
-        <ConnectionProvider endpoint={rpcEndpoint}>
-            <WalletProvider wallets={wallets} autoConnect>
-                <WalletModalProvider>
-                    {children}
-                </WalletModalProvider>
-            </WalletProvider>
+        <ConnectionProvider
+            endpoint= { endpoint }
+    config = { connectionConfig }
+    commitment = { commitment }
+        >
+        <WalletProvider
+                wallets={ wallets }
+    onError = { handleError }
+    autoConnect = { autoConnect }
+        >
+        <WalletModalProvider>
+        { children }
+        </WalletModalProvider>
+        </WalletProvider>
         </ConnectionProvider>
     );
-};
-
-export default WalletContextProvider;
+}
