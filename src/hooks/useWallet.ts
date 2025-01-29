@@ -36,22 +36,21 @@ interface WalletContextProviderProps {
  * </WalletContextProvider>
  * ```
  */
-const WalletContextProvider: FC<WalletContextProviderProps> = ({ 
-    children,
-    endpoint = clusterApiUrl('devnet'),
-    network = 'devnet'
-}): JSX.Element => {
+export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children, endpoint, network = 'devnet' }) => {
+    // 如果没有提供endpoint，则使用默认的devnet节点
+    const rpcEndpoint = useMemo(() => endpoint || clusterApiUrl(network), [endpoint, network]);
+
     // 初始化钱包适配器列表
-    const wallets = useMemo<Adapter[]>(
+    const wallets = useMemo(
         () => [
             new PhantomWalletAdapter(),
-            new SolflareWalletAdapter({ network }),
+            new SolflareWalletAdapter()
         ],
-        [network]
+        []
     );
 
     return (
-        <ConnectionProvider endpoint={endpoint}>
+        <ConnectionProvider endpoint={rpcEndpoint}>
             <WalletProvider wallets={wallets} autoConnect>
                 <WalletModalProvider>
                     {children}
@@ -61,4 +60,4 @@ const WalletContextProvider: FC<WalletContextProviderProps> = ({
     );
 };
 
-export default WalletContextProvider; 
+export default WalletContextProvider;
