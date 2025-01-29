@@ -165,6 +165,17 @@ src/
 
 ## Getting Started
 
+### Prerequisites
+
+- Node.js >= 16.0.0
+- npm >= 8.0.0
+- Solidity >= 0.8.0
+- MetaMask or other Web3 wallet
+- MongoDB >= 5.0
+- Solana CLI >= 1.16.0
+- Anchor Framework >= 0.28.0
+- Rust >= 1.70.0
+
 ### For Users
 
 ```bash
@@ -183,19 +194,124 @@ git clone https://github.com/soulpet/platform.git
 # Install dependencies
 npm install
 
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your configuration
+
 # Run development environment
 npm run dev
+
+# Run tests
+npm test
+
+# Build for production
+npm run build
 ```
+
+### Configuration
+
+1. Database Setup
+```bash
+# Update MongoDB connection string in .env
+MONGODB_URI=your_mongodb_connection_string
+```
+
+2. Blockchain Configuration
+```bash
+# Configure Solana network in .env
+SOLANA_NETWORK=mainnet-beta  # or devnet, testnet
+SOLANA_RPC_URL=your_solana_rpc_url
+PROGRAM_ID=your_program_id
+
+# Configure wallet
+SOLANA_WALLET_PATH=/path/to/your/wallet.json
+```
+
+3. AI Service Setup
+```bash
+# Set up AI service credentials in .env
+AI_API_KEY=your_ai_service_api_key
+```
+
+### Deployment
+
+1. Production Deployment
+```bash
+# Build the application
+npm run build
+
+# Start production server
+npm start
+```
+
+2. Docker Deployment
+```bash
+# Build Docker image
+docker build -t soulpet .
+
+# Run Docker container
+docker run -p 3000:3000 soulpet
+```
+
+### Common Issues
+
+1. **Wallet Connection Issues**
+   - Ensure MetaMask or other Web3 wallet is properly installed
+   - Check if you're connected to the correct network
+
+2. **Smart Contract Interaction Errors**
+   - Verify you have sufficient network tokens for gas fees
+   - Ensure contract ABI is up to date
+
+3. **Development Environment Setup**
+   - Clear npm cache if dependencies fail to install
+   - Check Node.js version compatibility
 
 ## Contributing
 
-We welcome contributions to the SoulPet platform:
+### Code Style Guidelines
+
+- Follow the project's ESLint and Prettier configurations
+- Write meaningful commit messages following [Conventional Commits](https://www.conventionalcommits.org/)
+- Maintain consistent code formatting
+- Add appropriate comments and documentation
+- Write unit tests for new features
+
+### Pull Request Process
 
 1. Fork the project
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+3. Commit your changes (`git commit -m 'feat: add some amazing feature'`)
+4. Ensure all tests pass (`npm test`)
+5. Update documentation if needed
+6. Push to the branch (`git push origin feature/AmazingFeature`)
+7. Open a Pull Request with detailed description
+
+### Code Review Guidelines
+
+- All code changes require review
+- Address review comments promptly
+- Maintain a respectful and constructive dialogue
+- Ensure CI/CD checks pass
+
+## Changelog
+
+### [Unreleased]
+- Enhanced AI interaction capabilities
+- Improved 3D model rendering
+- Added new NFT features
+
+### [0.2.0] - 2024-01-15
+- Implemented basic AI personality reconstruction
+- Added NFT minting functionality
+- Integrated blockchain wallet connection
+- Enhanced user profile management
+
+### [0.1.0] - 2023-12-01
+- Initial release
+- Basic platform structure
+- User authentication system
+- Simple pet memorial creation
 
 ## License
 
